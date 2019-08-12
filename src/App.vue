@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-toolbar app>
+    <v-toolbar app v-if='!showNotEmbeddError'>
       <v-toolbar-title class="headline text-uppercase">
         <span @click='showDev()'>Speckle </span>
         <span class="font-weight-light">{{$store.state.hostAppName}}</span>
@@ -13,15 +13,15 @@
         <v-icon>cloud_upload</v-icon>
       </v-btn>
     </v-toolbar>
-    <v-dialog v-model="showAddNewReceiver" scrollable fullscreen>
+    <v-dialog v-model="showAddNewReceiver" scrollable fullscreen v-if='!showNotEmbeddError'>
       <NewClient :is-visible='showAddNewReceiver' @close='showAddNewReceiver=false'>
       </NewClient>
     </v-dialog>
-    <v-dialog v-model="showAddNewSender" scrollable fullscreen>
+    <v-dialog v-model="showAddNewSender" scrollable fullscreen v-if='!showNotEmbeddError'>
       <NewClientSender :is-visible='showAddNewSender' @close='showAddNewSender=false'>
       </NewClientSender>
     </v-dialog>
-    <v-content>
+    <v-content v-if='!showNotEmbeddError'>
       <v-container grid-list-md pa-0 mt-4>
         <v-layout row wrap>
           <v-flex xs12 md6 pa-3 xxxv-if='receivers.length>0'>
@@ -38,15 +38,33 @@
           <v-flex xs12 md6 pa-3>
             <span class='headline text-uppercase primary--text'>Senders</span>
             <v-divider class='my-4 primary'></v-divider>
-             <v-container grid-list-xl>
+            <v-container grid-list-xl>
               <v-layout row wrap>
                 <client-sender v-for='client in senders' :key='client.streamId + ":" + client.AccountId' :client='client'>{{client}}</client-sender>
               </v-layout>
-             </v-container>
+            </v-container>
           </v-flex>
         </v-layout>
       </v-container>
     </v-content>
+    <v-dialog v-model="showNotEmbeddError" persistent width="500">
+      <v-card>
+        <v-card-title class="headline primary dark white--text" primary-title>
+          Ouups. This Speckle Ui is not embedded.
+        </v-card-title>
+        <v-img src="https://robohash.org/speckled" height='210' contain></v-img>
+        <v-card-text>
+          See, we're looking for this <code>UiBindings</code> object, that should connect this ui to its subsequent model and we can't find it. Don't worry. It's not your fault.
+          If you're confused, reach out below:
+        </v-card-text>
+        <v-card-text class='text-xs-center'>
+          <v-btn large round color='' style='width: 200px' class='mt-1' :href='$store.state.slackInviteUrl' target='_blank'>Slack <v-icon right>question_answer</v-icon>
+          </v-btn><br>
+          <v-btn large round color='' style='width: 200px' class='mt-1' href='https://discourse.speckle.works' target='_blank'>Forum <v-icon right>speaker_notes</v-icon>
+          </v-btn>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 <script>
@@ -76,7 +94,8 @@ export default {
   data( ) {
     return {
       showAddNewReceiver: false,
-      showAddNewSender: false
+      showAddNewSender: false,
+      showNotEmbeddError: false
     }
   },
   methods: {
@@ -87,6 +106,10 @@ export default {
   },
   mounted( ) {
     console.log( 'app mounted!' )
+    if ( typeof UiBindings === 'undefined' || UiBindings === null ) {
+      this.showNotEmbeddError = true
+      return
+    }
 
     this.$store.dispatch( 'getAccounts' )
     this.$store.dispatch( 'getApplicationHostName' )
