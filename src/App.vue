@@ -1,15 +1,18 @@
 <template>
   <v-app>
     <v-toolbar app v-if='!showNotEmbeddError'>
-      <v-toolbar-title class="headline text-uppercase">
+      <v-btn @click='showAccountsPopup()' icon small>
+        <v-icon class='small' small>account_circle</v-icon>
+      </v-btn>
+      <v-toolbar-title class="headline text-uppercase mx-0">
         <span @click='showDev()'>Speckle </span>
         <span class="font-weight-light">{{$store.state.hostAppName}}</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn color="secondary" dark absolute bottom right fab :ripple="false" @click.native='showAddNewReceiver=true'>
+      <v-btn color="secondary" v-show='$store.state.accounts.length>0' dark absolute bottom right fab :ripple="false" @click.native='showAddNewReceiver=true'>
         <v-icon>cloud_download</v-icon>
       </v-btn>
-      <v-btn color="primary" absolute bottom right fab :ripple="false" @click.native='showAddNewSender=true' style="margin-right:60px">
+      <v-btn color="primary" v-show='$store.state.accounts.length>0' absolute bottom right fab :ripple="false" @click.native='showAddNewSender=true' style="margin-right:60px">
         <v-icon>cloud_upload</v-icon>
       </v-btn>
     </v-toolbar>
@@ -22,7 +25,18 @@
       </NewClientSender>
     </v-dialog>
     <v-content v-if='!showNotEmbeddError'>
-      <v-container grid-list-md pa-0 mt-4>
+      <v-container grid-list-md pa-0>
+        <v-layout row wrap v-show='$store.state.accounts.length===0'>
+          <v-flex xs12>
+            <v-card color='primary' dark>
+              <v-img contain src='https://robohash.org/specklesucks' height='210'></v-img>
+              <v-card-text class='text-xs-center'>
+                <b>Howdy, stranger!</b> Seems you have no speckle accounts yet.
+                <v-btn block @click.native='showAccountsPopup()'>add an account</v-btn>
+              </v-card-text>
+            </v-card>
+          </v-flex>
+        </v-layout>
         <v-layout row wrap>
           <v-flex xs12 md6 pa-3 xxxv-if='receivers.length>0'>
             <span class='headline text-uppercase secondary--text'>Receivers</span>
@@ -38,6 +52,7 @@
           <v-flex xs12 md6 pa-3>
             <span class='headline text-uppercase primary--text'>Senders</span>
             <v-divider class='my-4 primary'></v-divider>
+            <span class="" v-if="senders.length===0">There are no sender clients in this file.</span>
             <v-container grid-list-xl>
               <v-layout row wrap>
                 <client-sender v-for='client in senders' :key='client.streamId + ":" + client.AccountId' :client='client'>{{client}}</client-sender>
@@ -102,6 +117,9 @@ export default {
     showDev( ) {
       console.log( 'showing dev' )
       UiBindings.showDev( )
+    },
+    showAccountsPopup( ) {
+      UiBindings.showAccountsPopup( )
     }
   },
   mounted( ) {
