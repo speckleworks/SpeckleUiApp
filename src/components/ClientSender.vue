@@ -5,20 +5,23 @@
         :class="`elevation-${client.expired ? '15' : '1'} ${client.expired ? 'expired' : ''}`"
         slot-scope="{ hover }"
       >
+        <v-dialog v-model="showEditSender" scrollable fullscreen>
+          <NewClientSender :is-visible="showEditSender" :is-edit="true" @close="showEditSender=false" :sender-client="client"></NewClientSender>
+        </v-dialog>
+
         <v-toolbar color="primary xxxdarken-1 text-truncate elevation-0" dark>
           <v-icon color="white">cloud_upload</v-icon>
           <v-toolbar-title class="text-truncate font-weight-light">{{client.name}}</v-toolbar-title>
           <v-spacer></v-spacer>
+          <v-btn icon @click.native="selectObjects">
+            <v-icon>gps_fixed</v-icon>
+          </v-btn>
           <v-btn
             icon
-            :href="`${client.account.RestApi.replace('api','#')}streams/${client.streamId}`"
+            @click.native="startProcess(`${client.account.RestApi.replace('api','#')}streams/${client.streamId}`)"
             target="_blank"
           >
             <v-icon>open_in_new</v-icon>
-          </v-btn>
-          <v-btn :flat="!client.expired" @click.native="startUpload()">
-            Push
-            <v-icon small right>cloud_upload</v-icon>
           </v-btn>
         </v-toolbar>
         <v-card-text class="caption">
@@ -27,7 +30,7 @@
             {{account.ServerName}}
           </span>&nbsp;
           <span class="caption">
-            <v-icon small>vpn_key</v-icon>StreamId:
+            <v-icon small>fingerprint</v-icon>StreamId:
             <span style="user-select:all;">
               <b>{{client.streamId}}</b>
             </span>
@@ -48,8 +51,17 @@
         </v-card-text>
         <!-- <v-card-text class="caption text--lighten-3">{{client.message}}</v-card-text> -->
         <v-card-actions>
-          <!-- <v-btn @click.native="startUpload()">PUSH</v-btn>&nbsp; -->
-          <v-btn
+          <v-btn :flat="!client.expired" @click.native="startUpload()" color="primary">
+            Push
+            <v-icon small right>cloud_upload</v-icon>
+          </v-btn>
+
+          <v-btn :flat="!client.expired" @click.native="showEditSender=true">
+            Edit sender
+            <v-icon small right>edit</v-icon>
+          </v-btn>
+
+          <!-- <v-btn
             small
             round
             :disabled="$store.state.selectionCount===0"
@@ -66,13 +78,9 @@
           >
             remove
             <v-icon right>remove</v-icon>
-          </v-btn>&nbsp;&nbsp;
-          <span
-            class="caption grey--text"
-          >{{$store.state.selectionCount}} selected objects</span>
-          <v-btn small icon @click.native="selectObjects">
-            <v-icon small>gps_fixed</v-icon>
-          </v-btn>
+          </v-btn>&nbsp;&nbsp;-->
+          <span class="caption grey--text">{{$store.state.selectionCount}} selected objects</span>
+
           <v-spacer></v-spacer>
           <v-btn small flat outline icon color="error" @click.native="deleteClient">
             <v-icon small>delete</v-icon>
@@ -97,9 +105,13 @@
 </template>
 <script>
 import Sockette from "sockette";
+import NewClientSender from './NewClientSender.vue'
 
 export default {
   name: "SenderClient",
+  components: {
+    NewClientSender,
+  },
   props: {
     client: {
       type: Object,
@@ -128,7 +140,8 @@ export default {
     }
   },
   data: () => ({
-    sendStarted: false
+    sendStarted: false,
+    showEditSender: false
   }),
   methods: {
     startUpload() {
@@ -163,6 +176,9 @@ export default {
     selectObjects() {
       UiBindings.selectClientObjects(JSON.stringify(this.client));
     },
+    startProcess(process) {
+      UiBindings.startProcess(process);
+    },
     wsOpen(e) {
       this.sockette.json({
         eventName: "join",
@@ -191,7 +207,7 @@ export default {
     let wsUrl = this.account.RestApi.replace("http", "ws");
     this.sockette = new Sockette(
       `${wsUrl}?client_id=${this.client.clientId}&access_token=${
-        this.account.Token
+      this.account.Token
       }`,
       {
         timeout: 5e3,
