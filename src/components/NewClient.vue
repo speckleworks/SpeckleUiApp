@@ -1,12 +1,13 @@
 <template>
   <v-card>
-    <v-toolbar card dark color="secondary">
+    <v-toolbar dark flat color="secondary">
       <v-btn icon dark @click="$emit('close')">
         <v-icon>close</v-icon>
       </v-btn>
       <v-toolbar-title class="text-truncate font-weight-light">Add a new receiver</v-toolbar-title>
     </v-toolbar>
-    <v-card-text class="pa-5">
+    <v-card-text>
+       <div class="ma-5">
       <v-layout row wrap align-center>
         <v-flex xs12>
           <p class="headline font-weight-light">Account</p>
@@ -67,9 +68,11 @@
         >Create Receiver</v-btn>
       </v-layout>
       <v-alert
-        value="true"
+        :value="true"
         type="info"
+        class="mt-5"
       >If the stream contains objects that cannot be converted to Revit, they will not be visible in any way.</v-alert>
+      </div>
     </v-card-text>
   </v-card>
 </template>

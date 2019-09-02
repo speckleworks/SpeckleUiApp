@@ -6,23 +6,66 @@
         slot-scope="{ hover }"
       >
         <v-dialog v-model="showEditSender" scrollable fullscreen>
-          <NewClientSender :is-visible="showEditSender" :is-edit="true" @close="showEditSender=false" :sender-client="client"></NewClientSender>
+          <NewClientSender
+            :is-visible="showEditSender"
+            :is-edit="true"
+            @close="showEditSender=false"
+            :sender-client="client"
+          ></NewClientSender>
         </v-dialog>
 
-        <v-toolbar color="primary xxxdarken-1 text-truncate elevation-0" dark>
-          <v-icon color="white">cloud_upload</v-icon>
-          <v-toolbar-title class="text-truncate font-weight-light">{{client.name}}</v-toolbar-title>
+        <v-toolbar color="primary xxxdarken-1 text-truncate elevation-0" dark height="70">
+          <v-btn fab small color="white" @click.native="startUpload()">
+            <v-icon color="primary">cloud_upload</v-icon>
+          </v-btn>
+
+          <v-toolbar-title class="text-truncate font-weight-light ml-3">{{client.name}}</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon @click.native="selectObjects">
-            <v-icon>gps_fixed</v-icon>
-          </v-btn>
-          <v-btn
-            icon
-            @click.native="startProcess(`${client.account.RestApi.replace('api','#')}streams/${client.streamId}`)"
-            target="_blank"
-          >
-            <v-icon>open_in_new</v-icon>
-          </v-btn>
+
+          <!-- EDIT -->
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on }">
+              <v-btn small icon @click.native="showEditSender=true">
+                <v-icon small>edit</v-icon>
+              </v-btn>
+            </template>
+            <span>Edit Sender</span>
+          </v-tooltip>
+
+          <!-- SELECT OBJECTS -->
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on }">
+              <v-btn small icon @click.native="selectObjects">
+                <v-icon small>gps_fixed</v-icon>
+              </v-btn>
+            </template>
+            <span>Show objects</span>
+          </v-tooltip>
+
+          <!-- OPEN IN BROSWER -->
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on }">
+              <v-btn
+                icon
+                small
+                @click.native="startProcess(`${client.account.RestApi.replace('api','#')}streams/${client.streamId}`)"
+                target="_blank"
+              >
+                <v-icon small>open_in_new</v-icon>
+              </v-btn>
+            </template>
+            <span>Open stream in web browser</span>
+          </v-tooltip>
+
+          <!-- DELETE -->
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on }">
+              <v-btn small icon @click.native="deleteClient">
+                <v-icon small>delete</v-icon>
+              </v-btn>
+            </template>
+            <span>Delete Sender</span>
+          </v-tooltip>
         </v-toolbar>
         <v-card-text class="caption">
           <span>
@@ -51,15 +94,15 @@
         </v-card-text>
         <!-- <v-card-text class="caption text--lighten-3">{{client.message}}</v-card-text> -->
         <v-card-actions>
-          <v-btn :flat="!client.expired" @click.native="startUpload()" color="primary">
+          <!-- <v-btn :flat="!client.expired" @click.native="startUpload()" color="primary">
             Push
             <v-icon small right>cloud_upload</v-icon>
           </v-btn>
 
           <v-btn :flat="!client.expired" @click.native="showEditSender=true">
-            Edit sender
+            Edit
             <v-icon small right>edit</v-icon>
-          </v-btn>
+          </v-btn>-->
 
           <!-- <v-btn
             small
@@ -82,9 +125,9 @@
           <span class="caption grey--text">{{$store.state.selectionCount}} selected objects</span>
 
           <v-spacer></v-spacer>
-          <v-btn small flat outline icon color="error" @click.native="deleteClient">
+          <!-- <v-btn small flat outline icon color="error" @click.native="deleteClient">
             <v-icon small>delete</v-icon>
-          </v-btn>
+          </v-btn>-->
         </v-card-actions>
         <v-alert
           v-model="client.expired"

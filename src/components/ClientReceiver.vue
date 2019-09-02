@@ -5,20 +5,23 @@
         :class="`elevation-${client.expired ? '15' : '1'} ${client.expired ? 'expired' : ''}`"
         slot-scope="{ hover }"
       >
-        <v-toolbar color="secondary text-truncate elevation-0" dark>
-          <v-icon color="white">cloud_download</v-icon>
+        <v-toolbar color="secondary text-truncate elevation-0" dark height="70">
+          <v-btn fab small color="white" :flat="!client.expired" @click.native="bakeReceiver()"><v-icon color="secondary">cloud_download</v-icon></v-btn>
           <v-toolbar-title class="text-truncate font-weight-light">{{client.name}}</v-toolbar-title>
           <v-spacer></v-spacer>
+          <v-btn small icon @click.native="selectObjects">
+            <v-icon small>gps_fixed</v-icon>
+          </v-btn>
           <v-btn
+            small
             icon
             :href="`${client.account.RestApi.replace('api','#')}streams/${client.streamId}`"
             target="_blank"
           >
-            <v-icon>open_in_new</v-icon>
+            <v-icon small>open_in_new</v-icon>
           </v-btn>
-          <v-btn :flat="!client.expired" @click.native="bakeReceiver()">
-            Pull
-            <v-icon small right>cloud_download</v-icon>
+          <v-btn small flat icon @click.native="deleteClient">
+            <v-icon small>delete</v-icon>
           </v-btn>
         </v-toolbar>
         <v-card-text class="caption">
@@ -44,19 +47,20 @@
             v-model="client.loadingProgress"
             color="primary darken-1"
           ></v-progress-linear>
-          <br>
+          <br />
           <span class="caption text--lighten-3">{{client.loadingBlurb}}</span>&nbsp;
           <span class="caption grey--text">Total objects: {{client.objects.length}}</span>
         </v-card-text>
-        <v-card-actions>
-          <v-btn small icon @click.native="selectObjects">
-            <v-icon small>gps_fixed</v-icon>
+        <!-- <v-card-actions>
+          <v-btn color="secondary" :flat="!client.expired" @click.native="bakeReceiver()">
+            Pull
+            <v-icon small right>cloud_download</v-icon>
           </v-btn>
           <v-spacer></v-spacer>
           <v-btn small flat outline icon color="error" @click.native="deleteClient">
             <v-icon small>delete</v-icon>
           </v-btn>
-        </v-card-actions>
+        </v-card-actions> -->
         <v-alert
           v-model="client.expired"
           dismissible
@@ -69,8 +73,9 @@
           type="warning"
           xxxcolor="grey darken-2"
           v-if="client.errors && client.errors!== ''"
-          
-        ><div v-html="client.errors"></div></v-alert>
+        >
+          <div v-html="client.errors"></div>
+        </v-alert>
       </v-card>
     </v-hover>
   </v-flex>
@@ -160,7 +165,7 @@ export default {
     let wsUrl = this.account.RestApi.replace("http", "ws");
     this.sockette = new Sockette(
       `${wsUrl}?client_id=${this.client.clientId}&access_token=${
-        this.account.Token
+      this.account.Token
       }`,
       {
         timeout: 5e3,
