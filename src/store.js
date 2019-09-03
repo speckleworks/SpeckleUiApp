@@ -8,11 +8,13 @@ export default new Vuex.Store({
   state: {
     test: {},
     accounts: [],
+    filters: [],
     clients: [],
     hostAppName: null,
     currentFileName: null,
     errors: [],
-    selectionCount: 0
+    selectionCount: 0,
+    slackInviteUrl: "https://speckle-works.slack.com/join/shared_invite/enQtNjY5Mzk2NTYxNTA4LTU4MWI5ZjdhMjFmMTIxZDIzOTAzMzRmMTZhY2QxMmM1ZjVmNzJmZGMzMDVlZmJjYWQxYWU0MWJkYmY3N2JjNGI"
   },
   mutations: {
     ADD_CLIENT(state, client) {
@@ -49,6 +51,10 @@ export default new Vuex.Store({
 
     SET_ACCOUNTS(state, accounts) {
       state.accounts = accounts
+    },
+
+    SET_FILTERS(state, filters) {
+      state.filters = filters
     },
 
     SET_ACCOUNT_DATA(state, props) {
@@ -116,6 +122,11 @@ export default new Vuex.Store({
 
       client.name = streamName
       client.objects = objects
+
+      await Axios.put(`${client.account.RestApi}/streams/${client.streamId}`, { name: streamName }, { headers: { Authorization: client.account.Token } })
+        .catch(err => {
+          console.warn(err)
+        })
 
       context.commit('UPDATE_CLIENT', client)
 
@@ -241,6 +252,13 @@ export default new Vuex.Store({
       console.log(res.data)
       let tempClient = { _id: client._id, children: res.data.parent.children }
       context.commit('SET_CLIENT_DATA', tempClient)
-    })
+    }),
+
+    getFilters: (context) => new Promise(async (resolve, reject) => {
+      let res = await UiBindings.getFilters()
+      let filters = JSON.parse(res)
+
+      context.commit('SET_FILTERS', filters)
+    }),
   }
 })

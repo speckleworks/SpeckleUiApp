@@ -88,6 +88,7 @@ import NewClient from './components/NewClient.vue'
 import NewClientSender from './components/NewClientSender.vue'
 import ClientReceiver from './components/ClientReceiver.vue'
 import ClientSender from './components/ClientSender.vue'
+var pluralize = require('pluralize')
 
 export default {
   name: 'App',
