@@ -5,7 +5,7 @@
         :class="`elevation-${client.expired ? '15' : '1'} ${client.expired ? 'expired' : ''}`"
         slot-scope="{ hover }"
       >
-        <v-dialog v-model="showEditSender" scrollable fullscreen>
+        <v-dialog v-model="showEditSender" scrollable xxxfullscreen>
           <NewClientSender
             :is-visible="showEditSender"
             :is-edit="true"
@@ -89,46 +89,22 @@
             v-model="client.loadingProgress"
             color="primary darken-1"
           ></v-progress-linear>
-          <span class="caption text--lighten-3">{{client.loadingBlurb}}</span>&nbsp;
-          <span class="caption grey--text">Total objects: {{client.objects.length}}</span>
+          
+          <span>
+            <v-icon small>{{client.filter.Icon}}</v-icon>
+            <span
+              v-if="client.filter.Type==='SpeckleUiBase.ElementsSelectionFilter'"
+            > Objects by {{client.filter.Name}}, {{client.filter.Count}} selected.</span>
+            <span
+              v-else-if="client.filter.Type==='SpeckleUiBase.ListSelectionFilter'"
+            > Objects by {{client.filter.Name}}, {{client.filter.Selection.length}} selected.</span>
+            <span
+              v-else-if="client.filter.Type==='SpeckleUiBase.PropertySelectionFilter'"
+            > Objects by {{client.filter.Name}}, {{client.filter.PropertyName}} = {{client.filter.PropertyValue}}.</span>
+          </span>&nbsp;
+          <span class="caption grey--text" >{{client.loadingBlurb}}</span>
         </v-card-text>
-        <!-- <v-card-text class="caption text--lighten-3">{{client.message}}</v-card-text> -->
-        <v-card-actions>
-          <!-- <v-btn :flat="!client.expired" @click.native="startUpload()" color="primary">
-            Push
-            <v-icon small right>cloud_upload</v-icon>
-          </v-btn>
 
-          <v-btn :flat="!client.expired" @click.native="showEditSender=true">
-            Edit
-            <v-icon small right>edit</v-icon>
-          </v-btn>-->
-
-          <!-- <v-btn
-            small
-            round
-            :disabled="$store.state.selectionCount===0"
-            @click.native="addSelection()"
-          >
-            add
-            <v-icon right>add</v-icon>
-          </v-btn>&nbsp;
-          <v-btn
-            small
-            round
-            :disabled="$store.state.selectionCount===0"
-            @click.native="removeSelection()"
-          >
-            remove
-            <v-icon right>remove</v-icon>
-          </v-btn>&nbsp;&nbsp;-->
-          <span class="caption grey--text">{{$store.state.selectionCount}} selected objects</span>
-
-          <v-spacer></v-spacer>
-          <!-- <v-btn small flat outline icon color="error" @click.native="deleteClient">
-            <v-icon small>delete</v-icon>
-          </v-btn>-->
-        </v-card-actions>
         <v-alert
           v-model="client.expired"
           dismissible

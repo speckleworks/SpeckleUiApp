@@ -80,7 +80,7 @@ export default new Vuex.Store({
       context.commit('SET_CLIENT_DATA', { _id: client._id, expired: false, loading: false })
     }),
 
-    addSenderClient: (context, { account, streamName, objects }) => new Promise(async (resolve, reject) => {
+    addSenderClient: (context, { account, streamName, objects, filter }) => new Promise(async (resolve, reject) => {
       console.log(streamName, objects)
       let res = await Axios.post(`${account.RestApi}/streams`, { name: streamName }, { headers: { Authorization: account.Token } })
       let stream = res.data.resource
@@ -88,6 +88,7 @@ export default new Vuex.Store({
 
       let client = { ...stream }
       client.objects = objects
+      client.filter = filter
       client.AccountId = account.AccountId
       client.account = { RestApi: account.RestApi, Email: account.Email, Token: account.Token }
       client.type = 'sender'
@@ -118,10 +119,11 @@ export default new Vuex.Store({
       return resolve()
     }),
 
-    updateSenderClient: (context, { client, streamName, objects }) => new Promise(async (resolve, reject) => {
+    updateSenderClient: (context, { client, streamName, objects, filter }) => new Promise(async (resolve, reject) => {
 
       client.name = streamName
       client.objects = objects
+      client.filter = filter
 
       await Axios.put(`${client.account.RestApi}/streams/${client.streamId}`, { name: streamName }, { headers: { Authorization: client.account.Token } })
         .catch(err => {

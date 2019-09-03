@@ -9,14 +9,13 @@
     </v-toolbar>
     <v-card-text>
       <div class="ma-5">
-        <v-layout row wrap align-center>
+        <v-layout row wrap align-center v-if="!isEdit">
           <v-flex xs12>
             <p class="headline font-weight-light">Account</p>
             <p
               class="caption"
             >We first need to know which speckle server the data is going to go to.</p>
             <v-overflow-btn
-              :disabled="isEdit"
               :items="$store.state.accounts"
               label="Account"
               editable
@@ -28,24 +27,26 @@
           </v-flex>
         </v-layout>
         <v-layout row wrap align-center v-if="SelectionAccount">
+          <!-- STREAM NAME -->
           <v-flex xs12>
             <p class="headline font-weight-light">Stream Name</p>
             <p class="caption">Something meaningful would do, like 'walls-final-final-2'.</p>
             <v-text-field label="walls-final-final-2" single-line solo v-model="newStreamName"></v-text-field>
           </v-flex>
+          <!-- SELECTION FILTERS -->
           <v-flex xs12>
             <p class="headline font-weight-light">Objects</p>
             <p class="caption">Finally, what do you want to send?</p>
-            <v-tabs centered grow icons-and-text v-model="tab">
-              <v-tab v-for="filter in $store.state.filters" :key="filter.Name" class="ml-0">
+            <v-tabs centered grow icons-and-text v-model="SelectionFilter">
+              <v-tab v-for="(filter, index) in filters" :key="index" class="ml-0">
                 {{ filter.Name }}
                 <v-icon small>{{ filter.Icon }}</v-icon>
               </v-tab>
             </v-tabs>
           </v-flex>
           <v-flex xs12>
-            <v-tabs-items v-model="tab">
-              <v-tab-item v-for="filter in $store.state.filters" :key="filter.Name">
+            <v-tabs-items v-model="SelectionFilter">
+              <v-tab-item v-for="(filter, index) in filters" :key="index">
                 <v-card flat tile>
                   <!-- SELECTION -->
                   <v-card-text v-if="filter.Type==='SpeckleUiBase.ElementsSelectionFilter'">
@@ -69,7 +70,7 @@
                         <v-list-item ripple @click="toggle(filter)">
                           <v-list-item-action>
                             <v-icon
-                              :color="filter.Selection.length > 0 ? 'indigo darken-4' : ''"
+                              :color="filter.Selection.length > 0 ? 'primary' : ''"
                             >{{ icon(filter) }}</v-icon>
                           </v-list-item-action>
                           <v-list-item-content>
@@ -79,9 +80,30 @@
                         <v-divider class="mt-2"></v-divider>
                       </template>
                     </v-select>
-                    <v-select v-model="filter.Selection" :items="filter.Values" multiple></v-select>
+                  </v-card-text>
+                  <!-- CUSTOM -->
+                  <v-card-text v-else-if="filter.Type==='SpeckleUiBase.PropertySelectionFilter'">
+                    <p>
+                      Add objects to this stream when {{filter.Name.toLowerCase()}}
+                      <kbd>{{filter.PropertyName}}</kbd>
+                      equals
+                      <kbd>{{filter.PropertyValue}}</kbd>.
+                      <br />
+                      <var
+                        v-if="filter.HasCustomProperty"
+                      >You can use custom {{filter.Name.toLowerCase()}} names too!</var>
+                    </p>
 
-                    <!-- CUSTOM -->
+                    <v-combobox
+                      :readonly="!filter.HasCustomProperty"
+                      v-model="filter.PropertyName"
+                      :items="filter.Values"
+                      :label="filter.Name"
+                    ></v-combobox>
+                    <v-text-field
+                      label="Value (or comma separated values)"
+                      v-model="filter.PropertyValue"
+                    ></v-text-field>
                   </v-card-text>
                 </v-card>
               </v-tab-item>
@@ -121,7 +143,6 @@
 </template>
 <script>
 var pluralize = require('pluralize')
-console.log(pluralize('house', 5))
 export default {
   name: 'NewClient',
   props: {
@@ -148,15 +169,14 @@ export default {
     SelectionAccount: null,
     newStreamName: null,
     SelectionObjects: [],
-    tab: null,
+    SelectionFilter: null,
+    filters: []
   }),
   methods: {
     pluralize(text, count) {
       return pluralize(text, count)
     },
     checkedAllItems(filter) {
-      console.log("filter")
-      console.log(filter)
       return filter.Selection.length === filter.Values.length
     },
     checkedSomeItems(filter) {
@@ -175,25 +195,39 @@ export default {
           filter.Selection = filter.Values.slice()
         }      })    },
     onOpen() {
+      //deep copy
+      this.filters = JSON.parse(JSON.stringify(this.$store.state.filters))
       if (this.isEdit) {
-
-        let t = this.senderClient.account.Token
-        this.SelectionAccount = this.$store.state.accounts.find(ac => ac.Token === t)
+        this.SelectionAccount = this.$store.state.accounts.find(ac => ac.Token === this.senderClient.account.Token)
         this.newStreamName = this.senderClient.name
+        let filterIndex = this.filters.findIndex(f => f.Name === this.senderClient.filter.Name)
+        if (filterIndex > 0) {
+          this.SelectionFilter = filterIndex
+          this.filters[filterIndex] = this.senderClient.filter
+        }
+
+        console.log
       }
       else {
         this.SelectionAccount = this.$store.state.accounts.find(ac => ac.IsDefault === true)
+        this.newStreamName = ""
+        this.SelectionFilter = null
+
       }
     },
     refreshStreamsAtAccount() {
       this.$store.dispatch('getAccountStreams', this.SelectionAccount)
     },
     async addSender() {
-      let res = await this.$store.dispatch('addSenderClient', { account: this.SelectionAccount, streamName: this.newStreamName, objects: this.SelectionObjects })
+      //deep copy
+      let filter = JSON.parse(JSON.stringify(this.filters[this.SelectionFilter]))
+      let res = await this.$store.dispatch('addSenderClient', { account: this.SelectionAccount, streamName: this.newStreamName, objects: this.SelectionObjects, filter: filter })
       this.$emit("close")
     },
     async updateSender() {
-      let res = await this.$store.dispatch('updateSenderClient', { client: this.senderClient, streamName: this.newStreamName, objects: this.SelectionObjects })
+      //deep copy
+      let filter = JSON.parse(JSON.stringify(this.filters[this.SelectionFilter]))
+      let res = await this.$store.dispatch('updateSenderClient', { client: this.senderClient, streamName: this.newStreamName, objects: this.SelectionObjects, filter: filter })
       this.$emit("close")
     }
   },
