@@ -168,7 +168,6 @@ export default {
   data: () => ({
     SelectionAccount: null,
     newStreamName: null,
-    SelectionObjects: [],
     SelectionFilter: null,
     filters: []
   }),
@@ -221,13 +220,13 @@ export default {
     async addSender() {
       //deep copy
       let filter = JSON.parse(JSON.stringify(this.filters[this.SelectionFilter]))
-      let res = await this.$store.dispatch('addSenderClient', { account: this.SelectionAccount, streamName: this.newStreamName, objects: this.SelectionObjects, filter: filter })
+      let res = await this.$store.dispatch('addSenderClient', { account: this.SelectionAccount, streamName: this.newStreamName, filter: filter })
       this.$emit("close")
     },
     async updateSender() {
       //deep copy
       let filter = JSON.parse(JSON.stringify(this.filters[this.SelectionFilter]))
-      let res = await this.$store.dispatch('updateSenderClient', { client: this.senderClient, streamName: this.newStreamName, objects: this.SelectionObjects, filter: filter })
+      let res = await this.$store.dispatch('updateSenderClient', { client: this.senderClient, streamName: this.newStreamName, filter: filter })
       this.$emit("close")
     }
   },

@@ -87,7 +87,6 @@ export default new Vuex.Store({
       console.log(stream)
 
       let client = { ...stream }
-      client.objects = objects
       client.filter = filter
       client.AccountId = account.AccountId
       client.account = { RestApi: account.RestApi, Email: account.Email, Token: account.Token }
@@ -122,7 +121,6 @@ export default new Vuex.Store({
     updateSenderClient: (context, { client, streamName, objects, filter }) => new Promise(async (resolve, reject) => {
 
       client.name = streamName
-      client.objects = objects
       client.filter = filter
 
       await Axios.put(`${client.account.RestApi}/streams/${client.streamId}`, { name: streamName }, { headers: { Authorization: client.account.Token } })
