@@ -108,14 +108,15 @@
         <v-alert
           v-model="client.expired"
           dismissible
-          color="grey darken-2"
+          color="yellow lighten-3"
+          class="overline"
           v-if="client.message && client.message!== ''"
         >{{client.message}}</v-alert>
         <v-alert
           v-model="client.errors"
           dismissible
           type="warning"
-          xxxcolor="grey darken-2"
+          xxxcolor="red lighten-4"
           v-if="client.errors && client.errors!== ''"
         >{{client.errors}}</v-alert>
       </v-card>
@@ -169,7 +170,7 @@ export default {
       this.client.updatedAt = new Date().toISOString();
       this.client.message = "";
       this.client.expired = false;
-      UiBindings.updateSender(JSON.stringify(this.client));
+      UiBindings.pushSender(JSON.stringify(this.client));
     },
     deleteClient() {
       this.$store.dispatch("removeReceiverClient", this.client);
@@ -186,12 +187,12 @@ export default {
         }
       });
     },
-    addSelection() {
-      UiBindings.addSelectionToSender(JSON.stringify(this.client));
-    },
-    removeSelection() {
-      UiBindings.removeSelectionFromSender(JSON.stringify(this.client));
-    },
+    // addSelection() {
+    //   UiBindings.addSelectionToSender(JSON.stringify(this.client));
+    // },
+    // removeSelection() {
+    //   UiBindings.removeSelectionFromSender(JSON.stringify(this.client));
+    // },
     selectObjects() {
       UiBindings.selectClientObjects(JSON.stringify(this.client));
     },

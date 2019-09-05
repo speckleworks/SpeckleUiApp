@@ -65,7 +65,7 @@
                       <kbd>{{filter.Selection.length}}</kbd>
                       {{pluralize(filter.Name.toLowerCase(), filter.Selection.length)}} selected:
                     </p>
-                    <v-select v-model="filter.Selection" :items="filter.Values" multiple chips>
+                    <v-autocomplete v-model="filter.Selection" :items="filter.Values" multiple chips>
                       <template v-slot:prepend-item>
                         <v-list-item ripple @click="toggle(filter)">
                           <v-list-item-action>
@@ -79,7 +79,7 @@
                         </v-list-item>
                         <v-divider class="mt-2"></v-divider>
                       </template>
-                    </v-select>
+                    </v-autocomplete>
                   </v-card-text>
                   <!-- CUSTOM -->
                   <v-card-text v-else-if="filter.Type==='SpeckleUiBase.PropertySelectionFilter'">
@@ -94,8 +94,14 @@
                       >You can use custom {{filter.Name.toLowerCase()}} names too!</var>
                     </p>
 
+                    <v-autocomplete
+                      v-if="!filter.HasCustomProperty"
+                      v-model="filter.PropertyName"
+                      :items="filter.Values"
+                      :label="filter.Name"
+                    ></v-autocomplete>
                     <v-combobox
-                      :readonly="!filter.HasCustomProperty"
+                      v-else
                       v-model="filter.PropertyName"
                       :items="filter.Values"
                       :label="filter.Name"
@@ -193,9 +199,9 @@ export default {
         } else {
           filter.Selection = filter.Values.slice()
         }      })    },
-    onOpen() {
+    async onOpen() {
       //deep copy
-      this.filters = JSON.parse(JSON.stringify(this.$store.state.filters))
+      this.filters = JSON.parse( await UiBindings.getFilters())
       if (this.isEdit) {
         this.SelectionAccount = this.$store.state.accounts.find(ac => ac.Token === this.senderClient.account.Token)
         this.newStreamName = this.senderClient.name
