@@ -3,6 +3,7 @@ import './plugins/vuetify'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import Axios from 'axios'
 import 'roboto-fontface/css/roboto/roboto-fontface.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 
@@ -13,6 +14,14 @@ Vue.use( VueTimeago, {
   name: 'Timeago',
   locale: 'en',
 } )
+
+// if IE <= 11, disable REST caching since IE has caching problems
+let ua = window.navigator.userAgent
+if (ua.indexOf('MSIE ') > 0 || ua.indexOf('Trident/' > 0)) {
+  Axios.defaults.headers.common[ 'Cache-Control' ] = 'no-cache, no-store'
+  Axios.defaults.headers.common[ 'Pragma' ] = 'no-cache'
+  Axios.defaults.headers.common[ 'Expires' ] = '0'
+}
 
 // set up an event bus on the window, to be used by the SpeckleUiBindings class to send events here
 window.EventBus = new Vue( )
