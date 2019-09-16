@@ -65,7 +65,12 @@
                       <kbd>{{filter.Selection.length}}</kbd>
                       {{pluralize(filter.Name.toLowerCase(), filter.Selection.length)}} selected:
                     </p>
-                    <v-autocomplete v-model="filter.Selection" :items="filter.Values" multiple chips>
+                    <v-autocomplete
+                      v-model="filter.Selection"
+                      :items="filter.Values"
+                      multiple
+                      chips
+                    >
                       <template v-slot:prepend-item>
                         <v-list-item ripple @click="toggle(filter)">
                           <v-list-item-action>
@@ -86,7 +91,8 @@
                     <p>
                       Add objects to this stream when {{filter.Name.toLowerCase()}}
                       <kbd>{{filter.PropertyName}}</kbd>
-                      equals
+                      &nbsp;
+                      <i>{{filter.PropertyOperator}}</i>&nbsp;
                       <kbd>{{filter.PropertyValue}}</kbd>.
                       <br />
                       <var
@@ -106,10 +112,12 @@
                       :items="filter.Values"
                       :label="filter.Name"
                     ></v-combobox>
-                    <v-text-field
-                      label="Value (or comma separated values)"
-                      v-model="filter.PropertyValue"
-                    ></v-text-field>
+                    <v-autocomplete
+                      v-model="filter.PropertyOperator"
+                      :items="filter.Operators"
+                      label="Operator"
+                    ></v-autocomplete>
+                    <v-text-field label="Value" v-model="filter.PropertyValue"></v-text-field>
                   </v-card-text>
                 </v-card>
               </v-tab-item>
@@ -166,9 +174,23 @@ export default {
   computed: {
     validated() {
       if (this.newStreamName !== null)
-        return true
+        return this.validatedFilter
       return false
     },
+    validatedFilter() {
+      if (this.filters.length == 0 || this.SelectionFilter === null)
+        return true
+      let filter = this.filters[this.SelectionFilter]
+      if (filter.Type === 'SpeckleUiBase.PropertySelectionFilter') {
+        return filter.PropertyName !== null && filter.PropertyValue !== null && filter.PropertyOperator !== null
+      }
+      else if (filter.Type === 'SpeckleUiBase.ListSelectionFilter') {
+        return filter.Selection.length > 0
+      }
+      else if (filter.Type === 'SpeckleUiBase.ElementsSelectionFilter') {
+        return filter.Count > 0
+      }
+    }
 
   },
   data: () => ({
@@ -200,24 +222,27 @@ export default {
           filter.Selection = filter.Values.slice()
         }      })    },
     async onOpen() {
-      //deep copy
-      this.filters = JSON.parse( await UiBindings.getFilters())
+
       if (this.isEdit) {
         this.SelectionAccount = this.$store.state.accounts.find(ac => ac.Token === this.senderClient.account.Token)
         this.newStreamName = this.senderClient.name
+      }
+      else {
+        this.SelectionAccount = this.$store.state.accounts.find(ac => ac.IsDefault === true)
+        this.newStreamName = null
+        this.SelectionFilter = null
+
+      }
+
+      //slowish operation, put here to avoid quirks, might need a loading bar...
+      //deep copy
+      this.filters = JSON.parse(await UiBindings.getFilters())
+      if (this.isEdit) {
         let filterIndex = this.filters.findIndex(f => f.Name === this.senderClient.filter.Name)
         if (filterIndex > 0) {
           this.SelectionFilter = filterIndex
           this.filters[filterIndex] = this.senderClient.filter
         }
-
-        console.log
-      }
-      else {
-        this.SelectionAccount = this.$store.state.accounts.find(ac => ac.IsDefault === true)
-        this.newStreamName = ""
-        this.SelectionFilter = null
-
       }
     },
     refreshStreamsAtAccount() {
