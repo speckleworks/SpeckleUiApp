@@ -73,7 +73,7 @@
               <v-layout row wrap>
                 <client-receiver
                   v-for="client in receivers"
-                  :key="client.streamId + ":" + client.AccountId"
+                  :key="client.streamId + ':' + client.AccountId"
                   :client="client "
                 ></client-receiver>
               </v-layout>
@@ -87,7 +87,7 @@
               <v-layout row wrap>
                 <client-sender
                   v-for="client in senders"
-                  :key="client.streamId + ":" + client.AccountId"
+                  :key="client.streamId + ':' + client.AccountId"
                   :client="client"
                 >{{client}}</client-sender>
               </v-layout>
