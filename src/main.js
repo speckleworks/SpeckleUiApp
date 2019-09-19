@@ -24,12 +24,19 @@ window.EventBus.$on( 'update-client', args => {
   window.Store.commit( 'SET_CLIENT_DATA', cl )
 } )
 
-// keeps track of the selected objects in revit
+// keeps track of the selected objects count
 window.EventBus.$on( 'update-selection-count', args => {
   let parsed = JSON.parse( args )
   if ( window.Store )
     window.Store.commit( "SET_SELECTION_COUNT", parsed.selectedObjectsCount )
 } )
+
+// keeps track of the selected objects
+window.EventBus.$on('update-selection', args => {
+  let parsed = JSON.parse(args)
+  if (window.Store)
+    window.Store.commit("SET_SELECTION_OBJECTS", parsed.selectedObjects)
+})
 
 window.Store = store
 window.app = new Vue( {

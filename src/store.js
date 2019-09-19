@@ -13,6 +13,7 @@ export default new Vuex.Store({
     currentFileName: null,
     errors: [],
     selectionCount: 0,
+    selectedObjects:[],
     slackInviteUrl: "https://speckle-works.slack.com/join/shared_invite/enQtNjY5Mzk2NTYxNTA4LTU4MWI5ZjdhMjFmMTIxZDIzOTAzMzRmMTZhY2QxMmM1ZjVmNzJmZGMzMDVlZmJjYWQxYWU0MWJkYmY3N2JjNGI"
   },
   mutations: {
@@ -65,6 +66,10 @@ export default new Vuex.Store({
 
     SET_SELECTION_COUNT(state, count) {
       state.selectionCount = count
+    },
+    
+    SET_SELECTION_OBJECTS(state, objects) {
+      state.selectedObjects = objects
     }
   },
   actions: {

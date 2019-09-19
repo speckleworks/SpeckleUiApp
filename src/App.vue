@@ -6,17 +6,18 @@
         <span class="font-weight-light">{{$store.state.hostAppName}}</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn 
-      @click="showAccountsPopup()" 
-      color="grey" 
-      dark 
-      absolute 
-      bottom 
-      right 
-      fab 
-      :ripple="false" 
-      style="margin-right:120px">
-        <v-icon>account_circle</v-icon>
+      <v-btn
+        color="primary"
+        v-show="$store.state.accounts.length>0"
+        absolute
+        bottom
+        right
+        fab
+        :ripple="false"
+        @click.native="showAddNewSender=true"
+        style="margin-right:120px"
+      >
+        <v-icon>cloud_upload</v-icon>
       </v-btn>
       <v-btn
         color="secondary"
@@ -28,21 +29,22 @@
         fab
         :ripple="false"
         @click.native="showAddNewReceiver=true"
+        style="margin-right:60px"
       >
         <v-icon>cloud_download</v-icon>
       </v-btn>
+
       <v-btn
-        color="primary"
-        v-show="$store.state.accounts.length>0"
+        @click="showAccountsPopup()"
+        color="grey"
+        dark
         absolute
         bottom
         right
         fab
         :ripple="false"
-        @click.native="showAddNewSender=true"
-        style="margin-right:60px"
       >
-        <v-icon>cloud_upload</v-icon>
+        <v-icon>account_circle</v-icon>
       </v-btn>
     </v-app-bar>
     <v-dialog v-model="showAddNewReceiver" scrollable xxxfullscreen v-if="!showNotEmbeddError">

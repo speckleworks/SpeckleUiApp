@@ -16,7 +16,7 @@
               class="caption"
             >We first need to know which speckle server the data is going to go to.</p>
             <v-overflow-btn
-              :items="$store.state.accounts"
+              :items="accounts"
               label="Account"
               editable
               solo
@@ -36,7 +36,7 @@
           <!-- SELECTION FILTERS -->
           <v-flex xs12>
             <p class="headline font-weight-light">Objects</p>
-            <p class="caption">Finally, what do you want to send?</p>
+            <p class="caption">How do you want to add objects to this stream?</p>
             <v-tabs centered grow icons-and-text v-model="SelectionFilter">
               <v-tab v-for="(filter, index) in filters" :key="index" class="ml-0">
                 {{ filter.Name }}
@@ -47,18 +47,31 @@
           <v-flex xs12>
             <v-tabs-items v-model="SelectionFilter">
               <v-tab-item v-for="(filter, index) in filters" :key="index">
-                <v-card flat tile>
+                <v-card flat tile v-if="filter.Type==='SpeckleUiBase.ElementsSelectionFilter'">
                   <!-- SELECTION -->
-                  <v-card-text v-if="filter.Type==='SpeckleUiBase.ElementsSelectionFilter'">
-                    <p>
-                      Add the current object selection to this stream.
-                      <br />You currently have
-                      <kbd>{{filter.Count}}</kbd>
-                      {{pluralize('object', filter.Count)}} selected.
+                  <v-card-text>
+                    <p v-if="filter.Selection.length===0">
+                      Select some objects and add them to this strem. 
+                    </p>
+                    <p v-else>
+                      You have added
+                      <kbd>{{filter.Selection.length}}</kbd>
+                      {{pluralize('object', filter.Selection.length)}} by selection.
                     </p>
                   </v-card-text>
+                  <v-card-actions>
+                    <v-btn rounded small outlined color="success" @click="addSelectionToSender()">
+                      <v-icon>add</v-icon>
+                      Add {{selectionCount}} {{pluralize('object', selectionCount)}}
+                    </v-btn>
+                    <v-btn rounded small outlined color="error" @click="clearSelection()">
+                      <v-icon>close</v-icon>Clear
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+                <v-card flat tile v-else-if="filter.Type==='SpeckleUiBase.ListSelectionFilter'">
                   <!-- LIST -->
-                  <v-card-text v-else-if="filter.Type==='SpeckleUiBase.ListSelectionFilter'">
+                  <v-card-text>
                     <p>
                       Add objects to this stream by {{filter.Name.toLowerCase()}}.
                       <br />You currently have
@@ -86,8 +99,10 @@
                       </template>
                     </v-autocomplete>
                   </v-card-text>
+                </v-card>
+                <v-card flat tile v-else-if="filter.Type==='SpeckleUiBase.PropertySelectionFilter'">
                   <!-- CUSTOM -->
-                  <v-card-text v-else-if="filter.Type==='SpeckleUiBase.PropertySelectionFilter'">
+                  <v-card-text>
                     <p>
                       Add objects to this stream when {{filter.Name.toLowerCase()}}
                       <kbd>{{filter.PropertyName}}</kbd>
@@ -156,6 +171,8 @@
   </v-card>
 </template>
 <script>
+import { mapState } from "vuex";
+
 var pluralize = require('pluralize')
 export default {
   name: 'NewClient',
@@ -164,14 +181,38 @@ export default {
     isEdit: { type: Boolean, default: false },
     senderClient: { type: Object, default: null },
   },
+  data: () => ({
+    SelectionAccount: null,
+    newStreamName: null,
+    SelectionFilter: null,
+    filters: []
+  }),
   watch: {
     isVisible(val) {
       if (val) {
         this.onOpen()
       }
+    },
+    // used as callback from addSelectionToSender
+    // contains a list of objects (ids) to add to the current selection filter
+    selectedObjects(val) {
+      if (val && val.length > 0) {
+        let filter = this.filters.find(f => f.Type === 'SpeckleUiBase.ElementsSelectionFilter')
+        if (filter) {
+          val.forEach(o => {
+            if (!filter.Selection.includes(o))
+              filter.Selection.push(o)
+          })
+        }
+      }
     }
   },
   computed: {
+    ...mapState([
+      "selectionCount",
+      "selectedObjects",
+      "accounts"
+    ]),
     validated() {
       if (this.newStreamName !== null)
         return this.validatedFilter
@@ -188,17 +229,12 @@ export default {
         return filter.Selection.length > 0
       }
       else if (filter.Type === 'SpeckleUiBase.ElementsSelectionFilter') {
-        return filter.Count > 0
+        return filter.Selection.length > 0
       }
     }
 
   },
-  data: () => ({
-    SelectionAccount: null,
-    newStreamName: null,
-    SelectionFilter: null,
-    filters: []
-  }),
+
   methods: {
     pluralize(text, count) {
       return pluralize(text, count)
@@ -224,29 +260,40 @@ export default {
     async onOpen() {
 
       if (this.isEdit) {
-        this.SelectionAccount = this.$store.state.accounts.find(ac => ac.Token === this.senderClient.account.Token)
+        this.SelectionAccount = this.accounts.find(ac => ac.Token === this.senderClient.account.Token)
         this.newStreamName = this.senderClient.name
       }
       else {
-        this.SelectionAccount = this.$store.state.accounts.find(ac => ac.IsDefault === true)
+        this.SelectionAccount = this.accounts.find(ac => ac.IsDefault === true)
         this.newStreamName = null
         this.SelectionFilter = null
 
       }
-
+console.log(this.senderClient)
       //slowish operation, put here to avoid quirks, might need a loading bar...
       //deep copy
       this.filters = JSON.parse(await UiBindings.getFilters())
       if (this.isEdit) {
         let filterIndex = this.filters.findIndex(f => f.Name === this.senderClient.filter.Name)
-        if (filterIndex > 0) {
+        
+        if (filterIndex > -1) {
           this.SelectionFilter = filterIndex
           this.filters[filterIndex] = this.senderClient.filter
+          
         }
       }
     },
     refreshStreamsAtAccount() {
       this.$store.dispatch('getAccountStreams', this.SelectionAccount)
+    },
+    async addSelectionToSender() {
+      await UiBindings.addSelectionToSender("")
+    },
+    async clearSelection() {
+      let filter = this.filters.find(f => f.Type === 'SpeckleUiBase.ElementsSelectionFilter')
+        if (filter) {
+          filter.Selection = []
+        }
     },
     async addSender() {
       //deep copy

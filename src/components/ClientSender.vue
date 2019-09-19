@@ -89,27 +89,31 @@
             v-model="client.loadingProgress"
             color="primary darken-1"
           ></v-progress-linear>
-          
+
           <span>
             <v-icon small>{{client.filter.Icon}}</v-icon>
             <span
               v-if="client.filter.Type==='SpeckleUiBase.ElementsSelectionFilter'"
-            > Objects by {{client.filter.Name}}, {{client.filter.Count}} selected.</span>
+            >Objects by {{client.filter.Name}}, {{client.filter.Selection.length}} added.</span>
             <span
               v-else-if="client.filter.Type==='SpeckleUiBase.ListSelectionFilter'"
-            > Objects by {{client.filter.Name}}, {{client.filter.Selection.length}} selected.</span>
+            >Objects by {{client.filter.Name}}, {{client.filter.Selection.length}} selected.</span>
             <span
               v-else-if="client.filter.Type==='SpeckleUiBase.PropertySelectionFilter'"
-            > Objects by {{client.filter.Name}}, {{client.filter.PropertyName}} = {{client.filter.PropertyValue}}.</span>
+            >Objects by {{client.filter.Name}}, where {{client.filter.PropertyName}} {{client.filter.PropertyOperator}} {{client.filter.PropertyValue}}.</span>
           </span>&nbsp;
-          <span class="caption grey--text" >{{client.loadingBlurb}}</span>
+          <span class="caption grey--text">{{client.loadingBlurb}}</span>
         </v-card-text>
 
         <v-alert
           v-model="client.expired"
           dismissible
-          color="yellow lighten-3"
-          class="overline"
+          dense
+          color="primary"
+          border="left"
+
+          class="mt-15"
+          colored-border
           v-if="client.message && client.message!== ''"
         >{{client.message}}</v-alert>
         <v-alert
