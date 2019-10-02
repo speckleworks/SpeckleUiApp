@@ -1,57 +1,85 @@
 <template>
   <v-flex xs12>
-    <v-hover>
-      <v-card
-        :class="`elevation-${client.expired ? '15' : '1'} ${client.expired ? 'expired' : ''}`"
-        slot-scope="{ hover }"
-      >
-        <v-toolbar color="secondary text-truncate elevation-0" dark height="70">
-          <v-btn fab small color="white" :flat="!client.expired" @click.native="bakeReceiver()"><v-icon color="secondary">cloud_download</v-icon></v-btn>
-          <v-toolbar-title class="text-truncate font-weight-light">{{client.name}}</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn small icon @click.native="selectObjects">
-            <v-icon small>gps_fixed</v-icon>
-          </v-btn>
-          <v-btn
-            small
-            icon
-            :href="`${client.account.RestApi.replace('api','#')}streams/${client.streamId}`"
-            target="_blank"
-          >
-            <v-icon small>open_in_new</v-icon>
-          </v-btn>
-          <v-btn small flat icon @click.native="deleteClient">
-            <v-icon small>delete</v-icon>
-          </v-btn>
-        </v-toolbar>
-        <v-card-text class="caption">
-          <span>
-            <v-icon small>developer_board</v-icon>
-            {{account.ServerName}}
-          </span>&nbsp;
-          <span class="caption">
-            <v-icon small>fingerprint</v-icon>StreamId:
-            <span style="user-select:all;">
-              <b>{{client.streamId}}</b>
-            </span>
-          </span>&nbsp;
-          <span class="caption">
-            <v-icon small>hourglass_full</v-icon>Last update:
-            <timeago :datetime="client.updatedAt" :auto-update="60"></timeago>
+    <v-card>
+      <v-toolbar color="secondary text-truncate elevation-0" dark height="70">
+        <v-btn fab small color="white" :depressed="!client.expired" @click.native="bakeReceiver()">
+          <v-icon color="secondary">cloud_download</v-icon>
+        </v-btn>
+        <v-toolbar-title class="text-truncate font-weight-light ml-3">{{client.name}}</v-toolbar-title>
+        <v-spacer></v-spacer>
+
+        <!-- NOTIFICATION -->
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on }">
+            <v-icon class="mr-2" v-on="on" color="red" small v-if="client.expired">lens</v-icon>
+          </template>
+          <span>This stream has updates that can be received</span>
+        </v-tooltip>
+
+        <!-- SELECT OBJECTS -->
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on }">
+            <v-btn small icon @click.native="selectObjects" v-on="on">
+              <v-icon small>gps_fixed</v-icon>
+            </v-btn>
+          </template>
+          <span>Show objects</span>
+        </v-tooltip>
+
+        <!-- OPEN IN BROSWER -->
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on }">
+            <v-btn
+              icon
+              small
+              @click.native="startProcess(`${client.account.RestApi.replace('api','#')}streams/${client.streamId}`)"
+              target="_blank"
+              v-on="on"
+            >
+              <v-icon small>open_in_new</v-icon>
+            </v-btn>
+          </template>
+          <span>Open stream in web browser</span>
+        </v-tooltip>
+
+        <!-- DELETE -->
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on }">
+            <v-btn small icon @click.native="deleteClient" v-on="on">
+              <v-icon small>delete</v-icon>
+            </v-btn>
+          </template>
+          <span>Delete Sender</span>
+        </v-tooltip>
+      </v-toolbar>
+      <v-card-text class="caption">
+        <span>
+          <v-icon small>developer_board</v-icon>
+          {{account.ServerName}}
+        </span>&nbsp;
+        <span class="caption">
+          <v-icon small>fingerprint</v-icon>StreamId:
+          <span style="user-select:all;">
+            <b>{{client.streamId}}</b>
           </span>
-          <v-progress-linear
-            v-show="client.loading"
-            :active="client.loading"
-            :indeterminate="client.isLoadingIndeterminate"
-            height="2"
-            v-model="client.loadingProgress"
-            color="primary darken-1"
-          ></v-progress-linear>
-          <br />
-          <span class="caption text--lighten-3">{{client.loadingBlurb}}</span>&nbsp;
-          <span class="caption grey--text">Total objects: {{client.objects.length}}</span>
-        </v-card-text>
-        <!-- <v-card-actions>
+        </span>&nbsp;
+        <span class="caption">
+          <v-icon small>hourglass_full</v-icon>Last update:
+          <timeago :datetime="client.updatedAt" :auto-update="60"></timeago>
+        </span>
+        <v-progress-linear
+          v-show="client.loading"
+          :active="client.loading"
+          :indeterminate="client.isLoadingIndeterminate"
+          height="2"
+          v-model="client.loadingProgress"
+          color="primary darken-1"
+        ></v-progress-linear>
+        <br />
+        <span class="caption text--lighten-3">{{client.loadingBlurb}}</span>&nbsp;
+        <span class="caption grey--text">Total objects: {{client.objects.length}}</span>
+      </v-card-text>
+      <!-- <v-card-actions>
           <v-btn color="secondary" :flat="!client.expired" @click.native="bakeReceiver()">
             Pull
             <v-icon small right>cloud_download</v-icon>
@@ -60,24 +88,22 @@
           <v-btn small flat outline icon color="error" @click.native="deleteClient">
             <v-icon small>delete</v-icon>
           </v-btn>
-        </v-card-actions> -->
-        <v-alert
-          v-model="client.expired"
-          dismissible
-          color="grey darken-2"
-          v-if="client.message && client.message!== ''"
-        >{{client.message}}</v-alert>
-        <v-alert
-          v-model="client.errors"
-          dismissible
-          type="warning"
-          xxxcolor="grey darken-2"
-          v-if="client.errors && client.errors!== ''"
-        >
-          <div v-html="client.errors"></div>
-        </v-alert>
-      </v-card>
-    </v-hover>
+      </v-card-actions>-->
+      <v-alert
+        dismissible
+        color="grey darken-2"
+        v-if="client.message && client.message!== ''"
+      >{{client.message}}</v-alert>
+      <v-alert
+        v-model="client.errors"
+        dismissible
+        type="warning"
+        xxxcolor="grey darken-2"
+        v-if="client.errors && client.errors!== ''"
+      >
+        <div v-html="client.errors"></div>
+      </v-alert>
+    </v-card>
   </v-flex>
 </template>
 <script>
@@ -112,6 +138,9 @@ export default {
     },
     selectObjects() {
       UiBindings.selectClientObjects(JSON.stringify(this.client));
+    },
+    startProcess(process) {
+      UiBindings.startProcess(process);
     },
     wsOpen(e) {
       this.sockette.json({

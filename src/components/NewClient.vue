@@ -76,7 +76,7 @@
           :value="true"
           type="info"
           class="mt-5"
-        >If the stream contains objects that cannot be converted to Revit, they will not be visible in any way.</v-alert>
+        >If the stream contains objects that cannot be converted to Revit, they will not be visible in any way...    <pre style="display: inline">(╯°□°）╯︵ ┻━┻</pre></v-alert>
       </div>
     </v-card-text>
   </v-card>
