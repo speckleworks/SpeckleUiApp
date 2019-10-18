@@ -16,8 +16,18 @@
           <span>This stream has updates that can be received</span>
         </v-tooltip>
 
+        <!-- PREVIEW OBJECTS -->
+        <v-tooltip bottom v-show='$store.state.canTogglePreview'>
+          <template v-slot:activator="{ on }">
+            <v-btn small icon @click.native="togglePreview" v-on="on">
+              <v-icon small>{{client.preview ? "visibility" : "visibility_off"}}</v-icon>
+            </v-btn>
+          </template>
+          <span>Toggle Preview</span>
+        </v-tooltip>
+
         <!-- SELECT OBJECTS -->
-        <v-tooltip bottom>
+        <v-tooltip bottom v-if='$store.state.canSelectObjects'>
           <template v-slot:activator="{ on }">
             <v-btn small icon @click.native="selectObjects" v-on="on">
               <v-icon small>gps_fixed</v-icon>
@@ -95,7 +105,7 @@
         v-if="client.message && client.message!== ''"
       >{{client.message}}</v-alert>
       <v-alert
-        v-model="client.errors"
+        xxxv-model="client.errors"
         dismissible
         type="warning"
         xxxcolor="grey darken-2"
@@ -138,6 +148,14 @@ export default {
     },
     selectObjects() {
       UiBindings.selectClientObjects(JSON.stringify(this.client));
+    },
+    togglePreview() {
+      console.log(this.client)
+      this.$store.commit("SET_CLIENT_DATA", { 
+        _id: this.client._id,
+        preview: !this.client.preview
+      })
+      UiBindings.clientUpdated(JSON.stringify(this.client))
     },
     startProcess(process) {
       UiBindings.startProcess(process);

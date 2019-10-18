@@ -192,6 +192,8 @@ export default {
     this.$store.dispatch('getAccounts')
     this.$store.dispatch('getApplicationHostName')
     this.$store.dispatch('getExistingClients')
+
+    this.$store.dispatch('getReceiverOptions')
   }
 }
 </script>
