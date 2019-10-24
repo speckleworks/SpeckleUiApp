@@ -17,7 +17,7 @@
         </v-tooltip>
 
         <!-- PREVIEW OBJECTS -->
-        <v-tooltip bottom v-show='$store.state.canTogglePreview'>
+        <v-tooltip bottom v-show="$store.state.canTogglePreview">
           <template v-slot:activator="{ on }">
             <v-btn small icon @click.native="togglePreview" v-on="on">
               <v-icon small>{{client.preview ? "visibility" : "visibility_off"}}</v-icon>
@@ -27,7 +27,7 @@
         </v-tooltip>
 
         <!-- SELECT OBJECTS -->
-        <v-tooltip bottom v-if='$store.state.canSelectObjects'>
+        <v-tooltip bottom v-if="$store.state.canSelectObjects">
           <template v-slot:activator="{ on }">
             <v-btn small icon @click.native="selectObjects" v-on="on">
               <v-icon small>gps_fixed</v-icon>
@@ -104,15 +104,28 @@
         color="grey darken-2"
         v-if="client.message && client.message!== ''"
       >{{client.message}}</v-alert>
-      <v-alert
-        xxxv-model="client.errors"
-        dismissible
-        type="warning"
-        xxxcolor="grey darken-2"
-        v-if="client.errors && client.errors!== ''"
-      >
-        <div v-html="client.errors"></div>
+      <v-alert dismissible dense type="warning" xxxcolor="grey darken-2" v-if="client.errorMsg">
+        <div row wrap class="d-flex flex-row">
+          <span class="caption" v-html="client.errorMsg"></span>
+          <v-btn outlined right x-small class="ml-5" v-if="client.errors" @click="showErrors=true">
+            <v-icon small>more_horiz</v-icon>
+          </v-btn>
+        </div>
       </v-alert>
+      <v-dialog v-model="showErrors" scrollable>
+        <v-card>
+            <v-list>
+           <v-subheader>CONVERSION ERRORS</v-subheader>
+              <v-list-item :two-line="err.Details" v-for="(err, i) in client.errors" :key="i">
+                <v-list-item-content>
+                  <v-list-item-title>{{err.Message}}</v-list-item-title>
+                  <v-list-item-subtitle v-html="err.Details">{{err.Details}}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+              
+            </v-list>
+        </v-card>
+      </v-dialog>
     </v-card>
   </v-flex>
 </template>
@@ -137,7 +150,11 @@ export default {
       return new Date(this.client.updatedAt).toLocaleDateString();
     }
   },
-  data: () => ({}),
+  data() {
+    return {
+      showErrors: false,
+    }
+  },
   methods: {
     bakeReceiver() {
       this.$store.dispatch("bakeReceiver", this.client);
@@ -151,7 +168,7 @@ export default {
     },
     togglePreview() {
       console.log(this.client)
-      this.$store.commit("SET_CLIENT_DATA", { 
+      this.$store.commit("SET_CLIENT_DATA", {
         _id: this.client._id,
         preview: !this.client.preview
       })

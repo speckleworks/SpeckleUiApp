@@ -106,6 +106,7 @@ export default new Vuex.Store( {
       client.loadingProgress = 0
       client.message = ''
       client.errors = null
+      client.errorMsg = ''
       client.clientId = null
 
       let docName = await UiBindings.getFileName( )
@@ -158,6 +159,7 @@ export default new Vuex.Store( {
       client.loadingProgress = 0
       client.message = ''
       client.errors = null
+      client.errorMsg = ''
       client.objects = [ ]
       client.clientId = null
       client.preview = true

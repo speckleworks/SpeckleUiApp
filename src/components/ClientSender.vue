@@ -123,6 +123,7 @@
       <v-alert
         v-model="client.errors"
         dismissible
+        dense
         type="warning"
         xxxcolor="red lighten-4"
         v-if="client.errors && client.errors!== ''"
