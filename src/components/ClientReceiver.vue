@@ -104,7 +104,7 @@
         color="grey darken-2"
         v-if="client.message && client.message!== ''"
       >{{client.message}}</v-alert>
-      <v-alert dismissible dense type="warning" xxxcolor="grey darken-2" v-if="client.errorMsg">
+      <v-alert dismissible dense type="warning" v-model="alertError">
         <div row wrap class="d-flex flex-row">
           <span class="caption" v-html="client.errorMsg"></span>
           <v-btn outlined right x-small class="ml-5" v-if="client.errors" @click="showErrors=true">
@@ -114,16 +114,15 @@
       </v-alert>
       <v-dialog v-model="showErrors" scrollable>
         <v-card>
-            <v-list>
-           <v-subheader>CONVERSION ERRORS</v-subheader>
-              <v-list-item :two-line="err.Details" v-for="(err, i) in client.errors" :key="i">
-                <v-list-item-content>
-                  <v-list-item-title>{{err.Message}}</v-list-item-title>
-                  <v-list-item-subtitle v-html="err.Details">{{err.Details}}</v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-              
-            </v-list>
+          <v-list>
+            <v-subheader>CONVERSION ERRORS</v-subheader>
+            <v-list-item :two-line="err.Details!=null" v-for="(err, i) in client.errors" :key="i">
+              <v-list-item-content>
+                <v-list-item-title>{{err.Message}}</v-list-item-title>
+                <v-list-item-subtitle v-html="err.Details">{{err.Details}}</v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
         </v-card>
       </v-dialog>
     </v-card>
@@ -148,6 +147,17 @@ export default {
     },
     updatedAt() {
       return new Date(this.client.updatedAt).toLocaleDateString();
+    },
+    alertError: {
+      // getter
+      get: function () {
+        return this.client.errorMsg != ''
+      },
+      // setter
+      set: function (newValue) {
+        this.client.errorMsg = ''
+        this.client.errors = []
+      }
     }
   },
   data() {
