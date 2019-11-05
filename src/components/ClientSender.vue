@@ -120,14 +120,27 @@
         colored-border
         v-if="client.message && client.message!== ''"
       >{{client.message}}</v-alert>
-      <v-alert
-        v-model="client.errors"
-        dismissible
-        dense
-        type="warning"
-        xxxcolor="red lighten-4"
-        v-if="client.errors && client.errors!== ''"
-      >{{client.errors}}</v-alert>
+      <v-alert dismissible dense type="warning" v-model="alertError">
+        <div row wrap class="d-flex flex-row">
+          <span class="caption" v-html="client.errorMsg"></span>
+          <v-btn outlined right x-small class="ml-5" v-if="client.errors" @click="showErrors=true">
+            <v-icon small>more_horiz</v-icon>
+          </v-btn>
+        </div>
+      </v-alert>
+      <v-dialog v-model="showErrors" scrollable>
+        <v-card>
+          <v-list>
+            <v-subheader>CONVERSION ERRORS</v-subheader>
+            <v-list-item :two-line="err.Details!=null" v-for="(err, i) in client.errors" :key="i">
+              <v-list-item-content>
+                <v-list-item-title>{{err.Message}}</v-list-item-title>
+                <v-list-item-subtitle v-html="err.Details">{{err.Details}}</v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-dialog>
     </v-card>
   </v-flex>
 </template>
@@ -154,6 +167,17 @@ export default {
     },
     updatedAt() {
       return new Date(this.client.updatedAt).toLocaleDateString();
+    },
+    alertError: {
+      // getter
+      get: function () {
+        return this.client.errorMsg != ''
+      },
+      // setter
+      set: function (newValue) {
+        this.client.errorMsg = ''
+        this.client.errors = []
+      }
     }
   },
   watch: {
@@ -169,7 +193,8 @@ export default {
   },
   data: () => ({
     sendStarted: false,
-    showEditSender: false
+    showEditSender: false,
+    showErrors: false
   }),
   methods: {
     startUpload() {
