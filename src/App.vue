@@ -6,19 +6,7 @@
         <span class="font-weight-light">{{$store.state.hostAppName}}</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn
-        color="primary"
-        v-show="$store.state.accounts.length>0"
-        absolute
-        bottom
-        right
-        fab
-        :ripple="false"
-        @click.native="showAddNewSender=true"
-        style="margin-right:120px"
-      >
-        <v-icon>cloud_upload</v-icon>
-      </v-btn>
+
       <v-btn
         color="secondary"
         v-show="$store.state.accounts.length>0"
@@ -29,11 +17,23 @@
         fab
         :ripple="false"
         @click.native="showAddNewReceiver=true"
-        style="margin-right:60px"
+        style="margin-right:120px"
       >
         <v-icon>cloud_download</v-icon>
       </v-btn>
-
+      <v-btn
+        color="primary"
+        v-show="$store.state.accounts.length>0"
+        absolute
+        bottom
+        right
+        fab
+        :ripple="false"
+        @click.native="showAddNewSender=true"
+        style="margin-right:60px"
+      >
+        <v-icon>cloud_upload</v-icon>
+      </v-btn>
       <v-btn
         @click="showAccountsPopup()"
         color="grey"
