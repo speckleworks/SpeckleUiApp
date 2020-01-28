@@ -190,12 +190,10 @@ export default new Vuex.Store( {
       // note: real update, with all the heavy object lifting, happens in .NET
       let res = await Axios.get( `${client.account.RestApi}/streams/${client.streamId}?fields=name,updatedAt`, { headers: { Authorization: client.account.Token } } )
       console.log( res.data.resource )
-      let cl = { _id: res.data.resource._id, name: res.data.resource.name, updatedAt: res.data.resource.updatedAt }
-      console.log( expire )
-      if ( expire ) cl.expired = true
+      let cl = { _id: res.data.resource._id, name: res.data.resource.name, updatedAt: res.data.resource.updatedAt, expired: expire }
       context.commit( 'SET_CLIENT_DATA', cl )
       let stateClient = context.state.clients.find( cl => cl._id === cl._id )
-      UiBindings.ClientUpdated( JSON.stringify( stateClient ) ); // propagate to ui, in case something can be done there
+      //UiBindings.ClientUpdated( JSON.stringify( stateClient ) ); // propagate to ui, in case something can be done there
     } ),
 
     flushClients: ( context ) => new Promise( async( resolve, reject ) => {

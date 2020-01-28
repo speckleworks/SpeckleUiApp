@@ -9,9 +9,9 @@
         <v-spacer></v-spacer>
 
         <!-- NOTIFICATION -->
-        <v-tooltip bottom>
+        <v-tooltip bottom v-if="client.expired">
           <template v-slot:activator="{ on }">
-            <v-icon class="mr-2" v-on="on" color="red" small v-if="client.expired">lens</v-icon>
+            <v-icon class="mr-2" v-on="on" color="red" small >lens</v-icon>
           </template>
           <span>This stream has updates that can be received</span>
         </v-tooltip>
