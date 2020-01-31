@@ -17,7 +17,7 @@
         </v-tooltip>
 
         <!-- PREVIEW OBJECTS -->
-        <v-tooltip bottom v-show="$store.state.canTogglePreview">
+        <v-tooltip bottom v-if="$store.state.canTogglePreview">
           <template v-slot:activator="{ on }">
             <v-btn small icon @click.native="togglePreview" v-on="on">
               <v-icon small>{{client.preview ? "visibility" : "visibility_off"}}</v-icon>
