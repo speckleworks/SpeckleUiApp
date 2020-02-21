@@ -76,7 +76,7 @@ export default new Vuex.Store( {
       client.objects = objects
       client.AccountId = account.AccountId
       client.account = { RestApi: account.RestApi, Email: account.Email, Token: account.Token }
-      client.type = 'sender'
+      client.type = 'Sender'
       client.expired = true
       client.loading = false
       client.loadingBlurb = 'This stream might be expired.'
@@ -109,7 +109,7 @@ export default new Vuex.Store( {
 
       client.AccountId = account.AccountId
       client.account = { RestApi: account.RestApi, Email: account.Email, Token: account.Token }
-      client.type = 'receiver'
+      client.type = 'Receiver'
       client.expired = true
       client.loading = false
       client.loadingBlurb = ''
