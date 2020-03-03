@@ -12,7 +12,11 @@ export default new Vuex.Store( {
     hostAppName: null,
     currentFileName: null,
     errors: [ ],
-    selectionCount: 0
+    selectionCount: 0,
+    selectedObjects: [ ],
+    slackInviteUrl: "https://speckle-works.slack.com/join/shared_invite/enQtNjY5Mzk2NTYxNTA4LTU4MWI5ZjdhMjFmMTIxZDIzOTAzMzRmMTZhY2QxMmM1ZjVmNzJmZGMzMDVlZmJjYWQxYWU0MWJkYmY3N2JjNGI",
+    canTogglePreview: false,
+    canSelectObjects: false,
   },
   mutations: {
     ADD_CLIENT( state, client ) {
@@ -20,8 +24,16 @@ export default new Vuex.Store( {
       state.clients.unshift( client )
     },
 
+    UPDATE_CLIENT( state, client ) {
+      const index = state.clients.findIndex( cl => cl._id === client._id )
+      if ( index !== -1 )
+        state.clients.splice( index, 1, client )
+      else
+        console.error( 'client not found', _id )
+    },
+
     REMOVE_CLIENT( state, _id ) {
-      let index = state.clients.findIndex( cl => cl._id === _id )
+      const index = state.clients.findIndex( cl => cl._id === _id )
       if ( index >= 0 )
         state.clients.splice( index, 1 )
       else
@@ -56,6 +68,16 @@ export default new Vuex.Store( {
 
     SET_SELECTION_COUNT( state, count ) {
       state.selectionCount = count
+    },
+
+    SET_SELECTION_OBJECTS( state, objects ) {
+      state.selectedObjects = objects
+    },
+    SET_canTogglePreview( state, value ) {
+      state.canTogglePreview = value
+    },
+    SET_canSelectObjects( state, value ) {
+      state.canSelectObjects = value
     }
   },
   actions: {
@@ -66,14 +88,14 @@ export default new Vuex.Store( {
       context.commit( 'SET_CLIENT_DATA', { _id: client._id, expired: false, loading: false } )
     } ),
 
-    addSenderClient: ( context, { account, streamName, objects } ) => new Promise( async( resolve, reject ) => {
+    addSenderClient: ( context, { account, streamName, objects, filter } ) => new Promise( async( resolve, reject ) => {
       console.log( streamName, objects )
       let res = await Axios.post( `${account.RestApi}/streams`, { name: streamName }, { headers: { Authorization: account.Token } } )
       let stream = res.data.resource
       console.log( stream )
 
       let client = {...stream }
-      client.objects = objects
+      client.filter = filter
       client.AccountId = account.AccountId
       client.account = { RestApi: account.RestApi, Email: account.Email, Token: account.Token }
       client.type = 'sender'
@@ -84,6 +106,7 @@ export default new Vuex.Store( {
       client.loadingProgress = 0
       client.message = ''
       client.errors = null
+      client.errorMsg = ''
       client.clientId = null
 
       let docName = await UiBindings.getFileName( )
@@ -97,10 +120,29 @@ export default new Vuex.Store( {
       dupe.account = {...dupe.account }
       delete dupe.account.Token
 
-      console.log( 'Sending this to ui bindings to add as a receiver' )
+      console.log( 'Sending this to ui bindings to add as a sender' )
       console.log( client )
 
       await UiBindings.addSender( JSON.stringify( client ) )
+      return resolve( )
+    } ),
+
+    updateSenderClient: ( context, { client, streamName, objects, filter } ) => new Promise( async( resolve, reject ) => {
+
+      client.name = streamName
+      client.filter = filter
+
+      await Axios.put( `${client.account.RestApi}/streams/${client.streamId}`, { name: streamName }, { headers: { Authorization: client.account.Token } } )
+        .catch( err => {
+          console.warn( err )
+        } )
+
+      context.commit( 'UPDATE_CLIENT', client )
+
+      console.log( 'Sending this to ui bindings to add as a sender' )
+      console.log( client )
+
+      await UiBindings.updateSender( JSON.stringify( client ) )
       return resolve( )
     } ),
 
@@ -117,8 +159,10 @@ export default new Vuex.Store( {
       client.loadingProgress = 0
       client.message = ''
       client.errors = null
+      client.errorMsg = ''
       client.objects = [ ]
       client.clientId = null
+      client.preview = true
       let docName = await UiBindings.getFileName( )
       let docId = await UiBindings.getDocumentId( )
       let res = await Axios.post( `${account.RestApi}/clients`, { documentType: context.state.hostAppName, streamId: stream.streamId, documentName: docName, documentGuid: docId, role: 'receiver' }, { headers: { Authorization: account.Token } } )
@@ -146,10 +190,10 @@ export default new Vuex.Store( {
       // note: real update, with all the heavy object lifting, happens in .NET
       let res = await Axios.get( `${client.account.RestApi}/streams/${client.streamId}?fields=name,updatedAt`, { headers: { Authorization: client.account.Token } } )
       console.log( res.data.resource )
-      let cl = { _id: res.data.resource._id, name: res.data.resource.name, updatedAt: res.data.resource.updatedAt }
-      console.log( expire )
-      if ( expire ) cl.expired = true
+      let cl = { _id: res.data.resource._id, name: res.data.resource.name, updatedAt: res.data.resource.updatedAt, expired: expire }
       context.commit( 'SET_CLIENT_DATA', cl )
+      let stateClient = context.state.clients.find( cl => cl._id === cl._id )
+      //UiBindings.ClientUpdated( JSON.stringify( stateClient ) ); // propagate to ui, in case something can be done there
     } ),
 
     flushClients: ( context ) => new Promise( async( resolve, reject ) => {
@@ -194,6 +238,13 @@ export default new Vuex.Store( {
       context.commit( 'SET_HOST_APP', res )
     } ),
 
+    getReceiverOptions: ( context ) => new Promise( async( resolve, reject ) => {
+      let previewCapable = await UiBindings.canTogglePreview( )
+      previewCapable != null ? context.commit( 'SET_canTogglePreview', previewCapable ) : {}
+      let showObjectsCapable = await UiBindings.canSelectObjects( )
+      showObjectsCapable != null ? context.commit( 'SET_canSelectObjects', showObjectsCapable ) : {}
+    } ),
+
     getExistingClients: ( context ) => new Promise( async( resolve, reject ) => {
       let clients = JSON.parse( await UiBindings.getFileClients( ) )
       console.log( clients )
@@ -219,6 +270,7 @@ export default new Vuex.Store( {
       console.log( res.data )
       let tempClient = { _id: client._id, children: res.data.parent.children }
       context.commit( 'SET_CLIENT_DATA', tempClient )
-    } )
+    } ),
+
   }
 } )
