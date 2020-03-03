@@ -34,7 +34,14 @@
             <p
               class="caption"
             >If the stream you're looking for doesn't show up here, try refreshing the list and make sure it's shared with you!</p>
-            <v-text-field v-model="search" label="Search streams" prepend-icon="search" clearable  @click:append="refreshStreamsAtAccount()" append-icon="refresh"></v-text-field>
+            <v-text-field
+              v-model="search"
+              label="Search streams"
+              prepend-icon="search"
+              clearable
+              @click:append="refreshStreamsAtAccount()"
+              append-icon="refresh"
+            ></v-text-field>
             <v-list max-height="200" class="overflow-y-auto">
               <v-list-item-group color="primary" v-model="selectedStream">
                 <v-list-item
