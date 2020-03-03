@@ -9,15 +9,15 @@
         <v-spacer></v-spacer>
 
         <!-- NOTIFICATION -->
-        <v-tooltip bottom>
+        <v-tooltip bottom v-if="client.expired">
           <template v-slot:activator="{ on }">
-            <v-icon class="mr-2" v-on="on" color="red" small v-if="client.expired">lens</v-icon>
+            <v-icon class="mr-2" v-on="on" color="red" small >lens</v-icon>
           </template>
           <span>This stream has updates that can be received</span>
         </v-tooltip>
 
         <!-- PREVIEW OBJECTS -->
-        <v-tooltip bottom v-show="$store.state.canTogglePreview">
+        <v-tooltip bottom v-if="$store.state.canTogglePreview">
           <template v-slot:activator="{ on }">
             <v-btn small icon @click.native="togglePreview" v-on="on">
               <v-icon small>{{client.preview ? "visibility" : "visibility_off"}}</v-icon>

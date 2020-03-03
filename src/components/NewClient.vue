@@ -34,22 +34,48 @@
             <p
               class="caption"
             >If the stream you're looking for doesn't show up here, try refreshing the list and make sure it's shared with you!</p>
-            <v-overflow-btn
+            <v-text-field
+              v-model="search"
+              label="Search streams"
+              prepend-icon="search"
+              clearable
+              @click:append="refreshStreamsAtAccount()"
+              append-icon="refresh"
+            ></v-text-field>
+            <v-list max-height="200" class="overflow-y-auto">
+              <v-list-item-group color="primary" v-model="selectedStream">
+                <v-list-item
+                  v-for="(item, i) in filteredStreams"
+                  :key="i"
+                  @click="addReceiver(item)"
+                >
+                  <v-list-item-content>
+                    <v-list-item-title v-text="item.fullName"></v-list-item-title>
+                    <v-list-item-subtitle>
+                      <timeago :datetime="item.updatedAt" :auto-update="60"></timeago>
+                    </v-list-item-subtitle>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list-item-group>
+            </v-list>
+
+            <!-- <v-overflow-btn
               append-icon="refresh"
               @click:append="refreshStreamsAtAccount()"
               :items="selectedAccount.streams"
               :label="'Streams from ' + selectedAccount.fullName"
               editable
+              :allow-overflow="false"
               v-model="selectedStream"
               item-text="fullName"
               return-object
-            ></v-overflow-btn>
+            ></v-overflow-btn>-->
             <!-- <v-select :items="selectedAccount.streams" item-text="name"></v-select> -->
           </v-flex>
-          <v-flex xs12 v-if="selectedStream" class="caption">
+          <!-- <v-flex xs12 v-if="selectedStream" class="caption">
             Last updated:
             <timeago :datetime="selectedStream.updatedAt" :auto-update="60"></timeago>
-          </v-flex>
+          </v-flex>-->
         </v-layout>
         <v-layout row wrap align-center>
           <v-flex
@@ -63,7 +89,7 @@
             v-if="!selectedAccount || !selectedAccount.validated"
           >Could not access that server (is it online?) or no server selected.</v-flex>
         </v-layout>
-        <v-layout row wrap align-center>
+        <!-- <v-layout row wrap align-center>
           <v-btn
             color="secondary"
             block
@@ -71,12 +97,17 @@
             :disabled="selectedStream===null"
             @click.native="addReceiver()"
           >Create Receiver</v-btn>
-        </v-layout>
-        <v-alert
-          :value="true"
-          type="info"
-          class="mt-5"
-        >If the stream contains objects that cannot be converted to Revit, they will not be visible in any way...    <pre style="display: inline">(╯°□°）╯︵ ┻━┻</pre></v-alert>
+        </v-layout>-->
+        <v-alert :value="true" type="info" class="mt-5">
+          Confused? Check out the
+          <v-btn
+            class="mb-1"
+            @click.native="startProcess('https://speckle.systems/docs/clients/revit/basics')"
+            target="_blank"
+            light
+            x-small
+          >docs</v-btn>!
+        </v-alert>
       </div>
     </v-card-text>
   </v-card>
@@ -99,7 +130,8 @@ export default {
   },
   data: () => ({
     selectedAccount: null,
-    selectedStream: null
+    selectedStream: null,
+    search: ''
   }),
   methods: {
     onOpen() {
@@ -111,16 +143,39 @@ export default {
     refreshStreamsAtAccount() {
       this.$store.dispatch("getAccountStreams", this.selectedAccount);
     },
-    async addReceiver() {
+    async addReceiver(stream) {
       let res = await this.$store.dispatch("addReceiverClient", {
         account: this.selectedAccount,
-        stream: this.selectedStream
+        stream: stream
       });
       this.$emit("close");
-    }
+    },
+    startProcess(process) {
+      UiBindings.startProcess(process);
+    },
   },
   mounted() {
     this.onOpen()
+  },
+  computed: {
+    filteredStreams() {
+
+      let streams
+
+      if (this.search === '' || this.search === null)
+        streams = this.selectedAccount.streams
+      else
+        streams = this.selectedAccount.streams.filter(x => x.fullName.toLowerCase().includes(this.search.toLowerCase()))
+
+      streams = streams.sort(function (a, b) {
+        // Turn your strings into dates, and then subtract them
+        // to get a value that is either negative, positive, or zero.
+        return new Date(b.updatedAt) - new Date(a.updatedAt)
+      })
+
+      return streams.slice(0, 20)
+
+    }
   }
 };
 </script>
