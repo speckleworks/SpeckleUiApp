@@ -59,7 +59,7 @@
               <v-icon small>delete</v-icon>
             </v-btn>
           </template>
-          <span>Delete Sender</span>
+          <span>Delete Receiver</span>
         </v-tooltip>
       </v-toolbar>
       <v-card-text class="caption">
